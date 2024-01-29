@@ -68,6 +68,7 @@ using namespace nvinfer1::plugin;
 #include "split.h"
 #include "splitGeLUPlugin.h"
 #include "voxelGenerator.h"
+#include "dft_plugins.h"
 
 using nvinfer1::plugin::RPROIParams;
 
@@ -225,6 +226,8 @@ extern "C"
         initializePlugin<nvinfer1::plugin::SplitGeLUPluginCreator>(logger, libNamespace);
         initializePlugin<nvinfer1::plugin::SplitPluginCreator>(logger, libNamespace);
         initializePlugin<nvinfer1::plugin::VoxelGeneratorPluginCreator>(logger, libNamespace);
+        initializePlugin<nvinfer1::plugin::FftPluginCreator>(logger, libNamespace);
+        initializePlugin<nvinfer1::plugin::IfftPluginCreator>(logger, libNamespace);
         return true;
     }
 } // extern "C"

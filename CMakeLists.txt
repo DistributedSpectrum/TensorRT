@@ -42,7 +42,7 @@ message("Building for TensorRT version: ${TRT_VERSION}, library version: ${TRT_S
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     find_program(CMAKE_CXX_COMPILER NAMES $ENV{CXX} g++)
 endif()
-
+set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 set(CMAKE_SKIP_BUILD_RPATH True)
 
 project(TensorRT
@@ -56,8 +56,8 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 option(BUILD_PLUGINS "Build TensorRT plugin" ON)
-option(BUILD_PARSERS "Build TensorRT parsers" ON)
-option(BUILD_SAMPLES "Build TensorRT samples" ON)
+option(BUILD_PARSERS "Build TensorRT parsers" OFF)
+option(BUILD_SAMPLES "Build TensorRT samples" OFF)
 
 # C++14
 set(CMAKE_CXX_STANDARD 14)
@@ -125,6 +125,10 @@ find_library(CUBLAS_LIB cublas HINTS
     ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
 find_library(CUBLASLT_LIB cublasLt HINTS
     ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+
+find_library(CUFFT_LIBRARY cufft HINTS
+    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+
 if(BUILD_PARSERS)
     configure_protobuf(${PROTOBUF_VERSION})
 endif()
