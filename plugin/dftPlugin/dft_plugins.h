@@ -167,8 +167,8 @@ namespace nvinfer1 {
         FftPlugin(void const* data, size_t size);
 
         AsciiChar const* getPluginType() const noexcept override;
-
         DimsExprs getOutputDimensions(int32_t outputIndex, DimsExprs const* inputs, int32_t nbInputs, IExprBuilder& exprBuilder) noexcept override;
+        void configurePlugin(DynamicPluginTensorDesc const* in, int32_t nbInputs, DynamicPluginTensorDesc const* out, int32_t nbOutputs) noexcept override;
 
          int32_t enqueue(PluginTensorDesc const* inputDesc, PluginTensorDesc const* outputDesc, void const* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept override;
          
@@ -177,6 +177,8 @@ namespace nvinfer1 {
         std::pair<cudaDataType, cudaDataType> getInOutTypes() const override ;
 
         Dims getSignalDims() const noexcept override;
+      private:
+         cublas_ptr cublas_;
     };
 
 
