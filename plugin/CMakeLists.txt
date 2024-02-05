@@ -69,6 +69,7 @@ set(PLUGIN_LISTS
     specialSlicePlugin
     splitPlugin
     voxelGeneratorPlugin
+    dftPlugin
 )
 
 # Add BERT sources if ${BERT_GENCODES} was populated
@@ -151,6 +152,7 @@ target_link_libraries(${SHARED_TARGET}
     ${CUDNN_LIB}
     ${nvinfer_LIB_PATH}
     ${CMAKE_DL_LIBS}
+    ${CUFFT_LIBRARY}
 )
 
 # Needed when static linking CUDART

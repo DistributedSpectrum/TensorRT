@@ -53,7 +53,7 @@
 #include "specialSlicePlugin/specialSlicePlugin.h"
 #include "splitPlugin/split.h"
 #include "voxelGeneratorPlugin/voxelGenerator.h"
-
+#include "dft_plugins.h"
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -218,6 +218,8 @@ extern "C"
         initializePlugin<nvinfer1::plugin::SpecialSlicePluginCreator>(logger, libNamespace);
         initializePlugin<nvinfer1::plugin::SplitPluginCreator>(logger, libNamespace);
         initializePlugin<nvinfer1::plugin::VoxelGeneratorPluginCreator>(logger, libNamespace);
+        initializePlugin<nvinfer1::plugin::FftPluginCreator>(logger, libNamespace);
+        initializePlugin<nvinfer1::plugin::IfftPluginCreator>(logger, libNamespace);
         return true;
     }
 } // extern "C"
