@@ -22,8 +22,10 @@ add_custom_target(parsers DEPENDS
 
 add_subdirectory(caffe)
 
-add_definitions("-D_PROTOBUF_INSTALL_DIR=${Protobuf_INSTALL_DIR}")
-add_compile_options("-Dgoogle=google_private")
+if(BUILD_PROTOBUF)
+    add_definitions("-D_PROTOBUF_INSTALL_DIR=${Protobuf_INSTALL_DIR}")
+    add_compile_options("-Dgoogle=google_private")
+endif()
 set(TENSORRT_ROOT ${PROJECT_SOURCE_DIR})
 set(TENSORRT_BUILD ${TRT_OUT_DIR} ${TRT_LIB_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${TRT_OUT_DIR})

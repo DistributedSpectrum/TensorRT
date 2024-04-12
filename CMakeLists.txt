@@ -42,7 +42,7 @@ message("Building for TensorRT version: ${TRT_VERSION}, library version: ${TRT_S
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     find_program(CMAKE_CXX_COMPILER NAMES $ENV{CXX} g++)
 endif()
-set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
+
 set(CMAKE_SKIP_BUILD_RPATH True)
 
 project(TensorRT
@@ -58,6 +58,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 option(BUILD_PLUGINS "Build TensorRT plugin" ON)
 option(BUILD_PARSERS "Build TensorRT parsers" OFF)
 option(BUILD_SAMPLES "Build TensorRT samples" OFF)
+option(BUILD_PROTOBUF "Build internal copy of protobuf" OFF)
 
 # C++14
 set(CMAKE_CXX_STANDARD 14)
@@ -69,6 +70,9 @@ if(NOT MSVC)
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_SYSTEM=cmake_oss")
 endif()
+
+# otherwise the installation directories are empty by default
+include(GNUInstallDirs)
 
 ############################################################################################
 # Cross-compilation settings
@@ -120,23 +124,25 @@ include_directories(
     ${CUDNN_ROOT_DIR}/include
 )
 find_library(CUDNN_LIB cudnn HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib/x64 lib)
+    ${CUDA_TOOLKIT_TARGET_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib)
 find_library(CUBLAS_LIB cublas HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 find_library(CUBLASLT_LIB cublasLt HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 
 find_library(CUFFT_LIBRARY cufft HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 
-if(BUILD_PARSERS)
-    configure_protobuf(${PROTOBUF_VERSION})
+if(BUILD_PROTOBUF)
+  configure_protobuf(${PROTOBUF_VERSION})
+else()
+  find_package(Protobuf REQUIRED)
 endif()
 
 find_library_create_target(nvinfer nvinfer SHARED ${TRT_LIB_DIR})
 find_library_create_target(nvuffparser nvparsers SHARED ${TRT_LIB_DIR})
 
-find_library(CUDART_LIB cudart HINTS ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib/x64 lib64)
+find_library(CUDART_LIB cudart HINTS ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib lib64)
 
 if (NOT MSVC)
     find_library(RT_LIB rt)
@@ -147,6 +153,10 @@ set(CUDA_LIBRARIES ${CUDART_LIB})
 ############################################################################################
 # CUDA targets
 
+if (SKIP_GPU_ARCHS)
+  set(GENCODES "")
+  set(BERT_GENCODES "")
+else()
 if (DEFINED GPU_ARCHS)
   message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
   separate_arguments(GPU_ARCHS)
@@ -193,6 +203,7 @@ if (${LATEST_SM} GREATER_EQUAL 70)
     set(BERT_GENCODES "${BERT_GENCODES} -gencode arch=compute_${LATEST_SM},code=compute_${LATEST_SM}")
     set(STABLE_DIFFUSION_GENCODES "${STABLE_DIFFUSION_GENCODES} -gencode arch=compute_${LATEST_SM},code=compute_${LATEST_SM}")
 endif()
+endif()
 
 if(NOT MSVC)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-declarations")
@@ -211,6 +222,8 @@ else()
 endif()
 
 if(BUILD_PARSERS)
+    set(BUILD_LIBRARY_ONLY 1)
+    set(TENSORRT_LIBRARY_INFER_PLUGIN "nvinfer_plugin")
     add_subdirectory(parsers)
 else()
     find_library_create_target(nvcaffeparser nvparsers SHARED ${TRT_OUT_DIR} ${TRT_LIB_DIR})

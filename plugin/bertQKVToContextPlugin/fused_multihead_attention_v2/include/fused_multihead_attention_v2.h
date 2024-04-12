@@ -272,9 +272,6 @@ extern uint32_t cubin_fmha_v2_fp16_128_64_sm90_cu_cubin_len;
 extern uint32_t cubin_fmha_v2_fp16_96_64_sm90_cu_cubin_len;
 extern uint32_t cubin_fmha_v2_fp16_64_64_sm90_cu_cubin_len;
 
-#if !(defined(ENABLE_SM72) || defined(ENABLE_SM75) || defined(ENABLE_SM80) || defined(ENABLE_SM86) || defined(ENABLE_SM87) || defined(ENABLE_SM89) || defined(ENABLE_SM90))
-#error This file can only be included one of sm 72, 75, 80, 86, 87, 89, or 90 are defined.
-#endif
 static const struct FusedMultiHeadAttentionKernelMetaInfoV2
 {
     Data_type mDataType;
