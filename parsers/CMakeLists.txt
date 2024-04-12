@@ -20,7 +20,7 @@ add_custom_target(parsers DEPENDS
     nvonnxparser
 )
 
-add_subdirectory(caffe)
+# add_subdirectory(caffe)
 
 if(BUILD_PROTOBUF)
     add_definitions("-D_PROTOBUF_INSTALL_DIR=${Protobuf_INSTALL_DIR}")
