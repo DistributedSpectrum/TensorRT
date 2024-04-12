@@ -71,8 +71,8 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_SYSTEM=cmake_oss")
 endif()
 
-+# otherwise the installation directories are empty by default
-+include(GNUInstallDirs)
+# otherwise the installation directories are empty by default
+include(GNUInstallDirs)
 
 ############################################################################################
 # Cross-compilation settings
