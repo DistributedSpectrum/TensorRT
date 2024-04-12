@@ -58,6 +58,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 option(BUILD_PLUGINS "Build TensorRT plugin" ON)
 option(BUILD_PARSERS "Build TensorRT parsers" OFF)
 option(BUILD_SAMPLES "Build TensorRT samples" OFF)
+option(BUILD_PROTOBUF "Build internal copy of protobuf" OFF)
 
 # C++14
 set(CMAKE_CXX_STANDARD 14)
@@ -69,6 +70,9 @@ if(NOT MSVC)
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_SYSTEM=cmake_oss")
 endif()
+
++# otherwise the installation directories are empty by default
++include(GNUInstallDirs)
 
 ############################################################################################
 # Cross-compilation settings
@@ -120,15 +124,20 @@ include_directories(
     ${CUDNN_ROOT_DIR}/include
 )
 find_library(CUDNN_LIB cudnn HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib/x64 lib)
+    ${CUDA_TOOLKIT_TARGET_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib)
 find_library(CUBLAS_LIB cublas HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+     ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 find_library(CUBLASLT_LIB cublasLt HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 
 find_library(CUFFT_LIBRARY cufft HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 
+if(BUILD_PROTOBUF)
+  configure_protobuf(${PROTOBUF_VERSION})
+else()
+  find_package(Protobuf REQUIRED)
+endif()
 if(BUILD_PARSERS)
     configure_protobuf(${PROTOBUF_VERSION})
 endif()
@@ -136,7 +145,7 @@ endif()
 find_library_create_target(nvinfer nvinfer SHARED ${TRT_LIB_DIR})
 find_library_create_target(nvuffparser nvparsers SHARED ${TRT_LIB_DIR})
 
-find_library(CUDART_LIB cudart HINTS ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib/x64 lib64)
+find_library(CUDART_LIB cudart HINTS ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib lib64)
 
 if (NOT MSVC)
     find_library(RT_LIB rt)
@@ -146,34 +155,38 @@ set(CUDA_LIBRARIES ${CUDART_LIB})
 
 ############################################################################################
 # CUDA targets
-
-if (DEFINED GPU_ARCHS)
-  message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
-  separate_arguments(GPU_ARCHS)
+if (SKIP_GPU_ARCHS)
+  set(GENCODES "")
+  set(BERT_GENCODES "")
 else()
-  list(APPEND GPU_ARCHS
-      53
-      60
-      61
-      70
-      75
-    )
+    if (DEFINED GPU_ARCHS)
+      message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
+      separate_arguments(GPU_ARCHS)
+    else()
+      list(APPEND GPU_ARCHS
+          53
+          60
+          61
+          70
+          75
+        )
 
-  string(REGEX MATCH "aarch64" IS_ARM "${TRT_PLATFORM_ID}")
-  if (IS_ARM)
-    # Xavier (SM72) only supported for aarch64.
-    list(APPEND GPU_ARCHS 72)
-  endif()
+      string(REGEX MATCH "aarch64" IS_ARM "${TRT_PLATFORM_ID}")
+      if (IS_ARM)
+        # Xavier (SM72) only supported for aarch64.
+        list(APPEND GPU_ARCHS 72)
+      endif()
 
-  if (CUDA_VERSION VERSION_GREATER_EQUAL 11.0)
-    # Ampere GPU (SM80) support is only available in CUDA versions > 11.0
-    list(APPEND GPU_ARCHS 80)
-  endif()
-  if (CUDA_VERSION VERSION_GREATER_EQUAL 11.1)
-    list(APPEND GPU_ARCHS 86)
-  endif()
+      if (CUDA_VERSION VERSION_GREATER_EQUAL 11.0)
+        # Ampere GPU (SM80) support is only available in CUDA versions > 11.0
+        list(APPEND GPU_ARCHS 80)
+      endif()
+      if (CUDA_VERSION VERSION_GREATER_EQUAL 11.1)
+        list(APPEND GPU_ARCHS 86)
+      endif()
 
-  message(STATUS "GPU_ARCHS is not defined. Generating CUDA code for default SMs: ${GPU_ARCHS}")
+      message(STATUS "GPU_ARCHS is not defined. Generating CUDA code for default SMs: ${GPU_ARCHS}")
+    endif()
 endif()
 set(BERT_GENCODES)
 set(STABLE_DIFFUSION_GENCODES)
@@ -211,6 +224,8 @@ else()
 endif()
 
 if(BUILD_PARSERS)
+    set(BUILD_LIBRARY_ONLY 1)
+    set(TENSORRT_LIBRARY_INFER_PLUGIN "nvinfer_plugin")
     add_subdirectory(parsers)
 else()
     find_library_create_target(nvcaffeparser nvparsers SHARED ${TRT_OUT_DIR} ${TRT_LIB_DIR})

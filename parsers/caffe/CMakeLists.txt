@@ -65,7 +65,7 @@ target_link_libraries(${SHARED_TARGET}
     ${Protobuf_LIBRARY}
     nvinfer
 )
-
+if(BUILD_PROTOBUF)
 # modify google namespace to avoid namespace collision.
 set(GOOGLE google_private)
 target_compile_definitions(${SHARED_TARGET}
@@ -73,7 +73,7 @@ target_compile_definitions(${SHARED_TARGET}
     "-Dgoogle=${GOOGLE}"
     "-DGOOGLE_PROTOBUF_ARCH_64_BIT"
 )
-
+endif()
 set_target_properties(${SHARED_TARGET} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL")
 
 set_target_properties(${SHARED_TARGET} PROPERTIES DEBUG_POSTFIX ${TRT_DEBUG_POSTFIX})
@@ -114,7 +114,7 @@ set_target_properties(${STATIC_TARGET}
 target_link_libraries(${STATIC_TARGET}
     ${Protobuf_LIBRARY}
 )
-
+if(BUILD_PROTOBUF)
 # modify google namespace to avoid namespace collision.
 set(GOOGLE google_private)
 target_compile_definitions(${STATIC_TARGET}
@@ -122,7 +122,7 @@ target_compile_definitions(${STATIC_TARGET}
     "-Dgoogle=${GOOGLE}"
     "-DGOOGLE_PROTOBUF_ARCH_64_BIT"
 )
-
+endif()
 set_target_properties(${STATIC_TARGET} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL")
 
 set_target_properties(${STATIC_TARGET} PROPERTIES DEBUG_POSTFIX ${TRT_DEBUG_POSTFIX})
