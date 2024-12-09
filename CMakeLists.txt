@@ -138,7 +138,18 @@ endif()
 
 include_directories(
     ${CUDA_INCLUDE_DIRS}
+    ${CUDNN_ROOT_DIR}/include
 )
+find_library(CUDNN_LIB cudnn HINTS
+    ${CUDA_TOOLKIT_ROOT_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib/x64 lib)
+find_library(CUBLAS_LIB cublas HINTS
+    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+find_library(CUBLASLT_LIB cublasLt HINTS
+    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+
+find_library(CUFFT_LIBRARY cufft HINTS
+    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+
 if(BUILD_PARSERS)
     configure_protobuf(${PROTOBUF_VERSION})
 endif()
