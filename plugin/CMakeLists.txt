@@ -149,9 +149,13 @@ set_target_properties(${SHARED_TARGET} PROPERTIES VERSION ${TRT_VERSION} SOVERSI
 set_property(TARGET ${SHARED_TARGET} PROPERTY CUDA_STANDARD 14)
 
 target_link_libraries(${SHARED_TARGET}
+    ${CUBLAS_LIB}
+    ${CUBLASLT_LIB}
     ${CUDART_LIB}
+    ${CUDNN_LIB}
     ${${nvinfer_lib_name}_LIB_PATH}
     ${CMAKE_DL_LIBS}
+    ${CUFFT_LIBRARY}
 )
 
 # Needed when static linking CUDART
