@@ -57,7 +57,7 @@
 #include "specialSlicePlugin/specialSlicePlugin.h"
 #include "splitPlugin/split.h"
 #include "voxelGeneratorPlugin/voxelGenerator.h"
-
+#include "dft_plugins.h"
 #include <algorithm>
 #include <array>
 #include <iostream>

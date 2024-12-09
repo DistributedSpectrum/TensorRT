@@ -72,6 +72,7 @@ set(PLUGIN_LISTS
     specialSlicePlugin
     splitPlugin
     voxelGeneratorPlugin
+    dftPlugin
 )
 
 # Add BERT sources if ${BERT_GENCODES} was populated
