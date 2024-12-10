@@ -34,8 +34,7 @@
 #include "instanceNormalizationPlugin/instanceNormalizationPlugin.h"
 #include "instanceNormalizationPlugin/instanceNormalizationPluginLegacy.h"
 #include "leakyReluPlugin/lReluPlugin.h"
-#include "modulatedDeformConvPlugin/modulatedDeformConvPlugin.h"
-#include "multilevelCropAndResizePlugin/multilevelCropAndResizePlugin.h"
+#include "modulatedDeformConvPlugin/modulatedDeformConvPlugin.h" #include "multilevelCropAndResizePlugin/multilevelCropAndResizePlugin.h"
 #include "multilevelProposeROI/multilevelProposeROIPlugin.h"
 #include "multiscaleDeformableAttnPlugin/multiscaleDeformableAttnPlugin.h"
 #include "nmsPlugin/nmsPlugin.h"
@@ -228,6 +227,8 @@ extern "C"
         initializePlugin<nvinfer1::plugin::SpecialSlicePluginCreator>(logger, libNamespace);
         initializePlugin<nvinfer1::plugin::SplitPluginCreator>(logger, libNamespace);
         initializePlugin<nvinfer1::plugin::VoxelGeneratorPluginCreator>(logger, libNamespace);
+        initializePlugin<nvinfer1::plugin::FftPluginCreator>(logger, libNamespace);
+        initializePlugin<nvinfer1::plugin::IfftPluginCreator>(logger, libNamespace);
         return true;
     }
 } // extern "C"
