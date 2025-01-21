@@ -78,6 +78,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 option(BUILD_PLUGINS "Build TensorRT plugin" ON)
 option(BUILD_PARSERS "Build TensorRT parsers" ON)
 option(BUILD_SAMPLES "Build TensorRT samples" ON)
+option(BUILD_PROTOBUF "Build protobuf" OFF)
 
 # C++14
 set(CMAKE_CXX_STANDARD 14)
@@ -90,6 +91,7 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_SYSTEM=cmake_oss")
 endif()
 
+include(GNUInstallDirs)
 ############################################################################################
 # Cross-compilation settings
 
@@ -141,15 +143,19 @@ include_directories(
     ${CUDNN_ROOT_DIR}/include
 )
 find_library(CUDNN_LIB cudnn HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib/x64 lib)
+    ${CUDA_TOOLKIT_TARGET_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64  lib)
 find_library(CUBLAS_LIB cublas HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 find_library(CUBLASLT_LIB cublasLt HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
+    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 
 find_library(CUFFT_LIBRARY cufft HINTS
-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
-
+    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
+if(BUILD_PROTOBUF)
+    configure_protobuf(${PROTOBUF_VERSION})
+else()
+    find_package(Protobuf REQUIRED)
+endif()
 if(BUILD_PARSERS)
     configure_protobuf(${PROTOBUF_VERSION})
 endif()
@@ -169,7 +175,7 @@ endif()
 
 find_library_create_target(nvinfer ${nvinfer_lib_name} SHARED ${TRT_LIB_DIR})
 
-find_library(CUDART_LIB cudart_static HINTS ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib/x64 lib64)
+find_library(CUDART_LIB cudart_static HINTS ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib lib64)
 
 if (NOT MSVC)
     find_library(RT_LIB rt)
@@ -180,35 +186,40 @@ set(CUDA_LIBRARIES ${CUDART_LIB})
 ############################################################################################
 # CUDA targets
 
-if (DEFINED GPU_ARCHS)
-  message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
-  separate_arguments(GPU_ARCHS)
+if (SKIP_GPU_ARCHS)
+    set(GENCODES "")
+    set(BERT_GENCODES "")
 else()
-  list(APPEND GPU_ARCHS
-      70
-      75
-    )
-
-  find_file(IS_L4T_NATIVE nv_tegra_release PATHS /env/)
-  set (IS_L4T_CROSS "False")
-  if (DEFINED ENV{IS_L4T_CROSS})
-    set(IS_L4T_CROSS $ENV{IS_L4T_CROSS})
-  endif()
-
-  if (IS_L4T_NATIVE OR ${IS_L4T_CROSS} STREQUAL "True")
-    # Only Orin (SM87) supported
-    list(APPEND GPU_ARCHS 87)
-  endif()
-
-  if (CUDA_VERSION VERSION_GREATER_EQUAL 11.0)
-    # Ampere GPU (SM80) support is only available in CUDA versions > 11.0
-    list(APPEND GPU_ARCHS 80)
-  endif()
-  if (CUDA_VERSION VERSION_GREATER_EQUAL 11.1)
-    list(APPEND GPU_ARCHS 86)
-  endif()
-
-  message(STATUS "GPU_ARCHS is not defined. Generating CUDA code for default SMs: ${GPU_ARCHS}")
+    if (DEFINED GPU_ARCHS)
+      message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
+      separate_arguments(GPU_ARCHS)
+    else()
+      list(APPEND GPU_ARCHS
+          70
+          75
+        )
+    
+      find_file(IS_L4T_NATIVE nv_tegra_release PATHS /env/)
+      set (IS_L4T_CROSS "False")
+      if (DEFINED ENV{IS_L4T_CROSS})
+        set(IS_L4T_CROSS $ENV{IS_L4T_CROSS})
+      endif()
+    
+      if (IS_L4T_NATIVE OR ${IS_L4T_CROSS} STREQUAL "True")
+        # Only Orin (SM87) supported
+        list(APPEND GPU_ARCHS 87)
+      endif()
+    
+      if (CUDA_VERSION VERSION_GREATER_EQUAL 11.0)
+        # Ampere GPU (SM80) support is only available in CUDA versions > 11.0
+        list(APPEND GPU_ARCHS 80)
+      endif()
+      if (CUDA_VERSION VERSION_GREATER_EQUAL 11.1)
+        list(APPEND GPU_ARCHS 86)
+      endif()
+    
+      message(STATUS "GPU_ARCHS is not defined. Generating CUDA code for default SMs: ${GPU_ARCHS}")
+    endif()
 endif()
 set(BERT_GENCODES)
 # Generate SASS for each architecture
@@ -243,6 +254,8 @@ else()
 endif()
 
 if(BUILD_PARSERS)
+    set(BUILD_LIBRARY_ONLY 1)
+    set(TENSORRT_LIBRARY_INFER_PLUGIN "nvinfer_plugin")
     add_subdirectory(parsers)
 else()
     find_library_create_target(nvonnxparser ${nvonnxparser_lib_name} SHARED ${TRT_OUT_DIR} ${TRT_LIB_DIR})
