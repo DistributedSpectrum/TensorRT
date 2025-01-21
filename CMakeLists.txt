@@ -154,11 +154,11 @@ find_library(CUFFT_LIBRARY cufft HINTS
 #if(BUILD_PROTOBUF)
 #    configure_protobuf(${PROTOBUF_VERSION})
 #else()
-#    find_package(Protobuf REQUIRED)
+   find_package(Protobuf REQUIRED)
 #endif()
-if(BUILD_PARSERS)
-    configure_protobuf(${PROTOBUF_VERSION})
-endif()
+# if(BUILD_PARSERS)
+#     configure_protobuf(${PROTOBUF_VERSION})
+# endif()
 
 # Windows library names have major version appended.
 if (MSVC)
