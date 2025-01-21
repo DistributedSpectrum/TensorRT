@@ -76,8 +76,8 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 option(BUILD_PLUGINS "Build TensorRT plugin" ON)
-option(BUILD_PARSERS "Build TensorRT parsers" ON)
-option(BUILD_SAMPLES "Build TensorRT samples" ON)
+option(BUILD_PARSERS "Build TensorRT parsers" OFF)
+option(BUILD_SAMPLES "Build TensorRT samples" OFF)
 option(BUILD_PROTOBUF "Build protobuf" OFF)
 
 # C++14

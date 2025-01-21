@@ -76,7 +76,7 @@ set(PLUGIN_LISTS
 )
 
 # Add BERT sources if ${BERT_GENCODES} was populated
-if(BERT_GENCODES)
+if(DEFINED BERT_GENCODES)
     set(BERT_CU_SOURCES)
     set(PLUGIN_LISTS
         ${PLUGIN_LISTS}
@@ -100,10 +100,14 @@ endforeach(PLUGIN_ITER)
 add_subdirectory(common)
 
 # Set gencodes
+if(GENCODES)
 set_source_files_properties(${PLUGIN_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${GENCODES} ${ENABLED_SMS}")
+endif()
 list(APPEND PLUGIN_SOURCES "${PLUGIN_CU_SOURCES}")
 if (BERT_CU_SOURCES)
-    set_source_files_properties(${BERT_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${BERT_GENCODES} ${ENABLED_SMS}")
+    if(BERT_GENCODES)
+        set_source_files_properties(${BERT_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${BERT_GENCODES} ${ENABLED_SMS}")
+    endif()
     list(APPEND PLUGIN_SOURCES "${BERT_CU_SOURCES}")
 endif()
 
