@@ -141,6 +141,7 @@ endif()
 include_directories(
     ${CUDA_INCLUDE_DIRS}
     ${CUDNN_ROOT_DIR}/include
+    ./include
 )
 find_library(CUDNN_LIB cudnn HINTS
     ${CUDA_TOOLKIT_TARGET_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64  lib)
