@@ -151,11 +151,11 @@ find_library(CUBLASLT_LIB cublasLt HINTS
 
 find_library(CUFFT_LIBRARY cufft HINTS
     ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
-if(BUILD_PROTOBUF)
-    configure_protobuf(${PROTOBUF_VERSION})
-else()
-    find_package(Protobuf REQUIRED)
-endif()
+#if(BUILD_PROTOBUF)
+#    configure_protobuf(${PROTOBUF_VERSION})
+#else()
+#    find_package(Protobuf REQUIRED)
+#endif()
 if(BUILD_PARSERS)
     configure_protobuf(${PROTOBUF_VERSION})
 endif()
